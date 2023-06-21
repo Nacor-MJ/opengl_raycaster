@@ -1,5 +1,5 @@
 [package]
-name = "opengl_thing"
+name = "opengl_raycaster"
 version = "0.1.0"
 edition = "2021"
 

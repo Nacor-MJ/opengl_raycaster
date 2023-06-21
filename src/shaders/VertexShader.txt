@@ -4,17 +4,25 @@ The goal is to get in the angle, and return the weird ass position thing.
 x is x on the screen and y is the height, x is (-1, 1) and heigh is (0, inf) but can be negative, don't clip to (0, 1) it'll be used for textures later.
 */
 
-const int MAPX = 8;
-const int MAPY = 8;
-const int MAP[64] = int[64](
-1, 1, 1, 1, 1, 1, 1, 1,
-1, 0, 0, 0, 0, 0, 0, 1,
-1, 0, 0, 1, 0, 0, 1, 1,
-1, 0, 0, 0, 0, 0, 0, 1,
-1, 0, 0, 0, 0, 0, 0, 1,
-1, 0, 0, 0, 0, 0, 0, 1,
-1, 0, 0, 0, 0, 0, 0, 1,
-1, 1, 1, 1, 1, 1, 1, 1
+const int MAPX = 16;
+const int MAPY = 16;
+const int MAP[256] = int[256](
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 );
 const float PI = 3.1415926535;
 const float PI2 = 1.570796326;
@@ -37,6 +45,7 @@ in float d_angle;
 in float screen_x;
 
 out vec2 geometryTexPoisiton;
+out int idx;
 
 void main() {
     float ray_angle = player.angle + d_angle;
@@ -51,6 +60,9 @@ void main() {
     float ray_x;
     float dx;
     float dy;
+
+    int idx_h;
+    int idx_v;
 
     //-----------horizontal-----------
     if (ray_angle > PI) {
@@ -72,10 +84,12 @@ void main() {
         int map_y = int (ray_x + d_ray_x * 0.000001);
 
         if (map_x > MAPX - 1 || map_x  < 0 || map_y > MAPY -1 || map_y < 0) {
-            break; // add color here
+            idx_h = 2;
+            break;
         }
         if (MAP[map_y * MAPY + map_x] != 0) {
-            break; // and here
+            idx_h = MAP[map_y * MAPY + map_x];
+            break;
         } else {
             ray_y += d_ray_y;
             ray_x += d_ray_x;
@@ -105,10 +119,12 @@ void main() {
         int map_y = int (ray_x + d_ray_x * 0.000001);
 
         if (map_x > MAPX - 1 || map_x  < 0 || map_y > MAPY -1 || map_y < 0) {
-            break; // and here
+            idx_v = 2;
+            break;
         }
         if (MAP[map_y * MAPY + map_x] != 0) {
-            break; // and here
+            idx_v = 2 ;//MAP[map_y * MAPY + map_x];
+            break;
         } else {
             ray_y += d_ray_y;
             ray_x += d_ray_x;
@@ -124,10 +140,12 @@ void main() {
     if (vertical.distance > horizontal.distance) {
         distance = horizontal.distance * cos(d_angle);
         tex_x = horizontal.x;
+        idx = idx_h;
         shade = 0.9;
     } else {
         distance = vertical.distance * cos(d_angle);
         tex_x = vertical.y;
+        idx = idx_v;
         shade = 1.0;
     }
     float screen_height = 1.0 / distance;

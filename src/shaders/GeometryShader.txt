@@ -5,7 +5,10 @@ layout (triangle_strip, max_vertices = 4) out;
 uniform float resolution;
 
 in vec2 geometryTexPoisiton[];
+in int idx[];
+
 out vec2 fragmentTexPosition;
+out flat int textureIdx;
 
 void draw_ray(vec4 position)
 {   
@@ -14,15 +17,19 @@ void draw_ray(vec4 position)
 
     gl_Position = vec4(x - resolution, -height, 0.0, 1.0);    // 1:bottom-left
     fragmentTexPosition = geometryTexPoisiton[0] + vec2(0.001, 0.0);;
+    textureIdx = 2;
     EmitVertex();
     gl_Position = vec4(x + resolution, -height, 0.0, 1.0);    // 2:bottom-right
     fragmentTexPosition = geometryTexPoisiton[0] + vec2(resolution / 2.0, 0.0);;
+    textureIdx = 2;
     EmitVertex();
     gl_Position = vec4(x - resolution, height, 0.0, 1.0);    // 3:top-left
     fragmentTexPosition = geometryTexPoisiton[0]  + vec2(0.001, 1.0);;
+    textureIdx = 2;
     EmitVertex();
     gl_Position = vec4(x + resolution, height, 0.0, 1.0);    // 4:top-right
     fragmentTexPosition = geometryTexPoisiton[0] + vec2(resolution / 2.0, 1.0);
+    textureIdx = 2;
     EmitVertex();
     EndPrimitive();
 }

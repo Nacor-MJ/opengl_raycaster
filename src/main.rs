@@ -28,7 +28,7 @@ const MAP: [i32; MAP_SIZE] = [ //used for collision detection, probably should b
 ];
 */
 
-const RESOLUTION: f64 = 1.0 / 256.0;
+const RESOLUTION: f64 = 1.0 / 512.0;
 const STRIPES_ON_SCREEN: i32 = (2.0 / RESOLUTION) as i32;  
 const FOV: f64 = PI / 2.0;
 const RES_TO_FOV_RATIO: f64 = FOV / STRIPES_ON_SCREEN as f64;
@@ -58,15 +58,10 @@ fn main() {
         angle: 0.0 ,
     };
 
-    
-    use std::io::Cursor;
-    let checkerboard_image = image::load(
-        Cursor::new(&include_bytes!("../checkerboard.png")),
-        image::ImageFormat::Png
-    ).unwrap().to_rgba8();
-    let checkerboard_image_dimensions = checkerboard_image.dimensions();
-    let checkerboard_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&checkerboard_image.into_raw(), checkerboard_image_dimensions); 
-    let checkerboard_tex = glium::texture::SrgbTexture2d::new(&display, checkerboard_image).unwrap();
+    use std::path::Path;
+    let checkerboard_tex = add_texture(Path::new("C:/Users/matou/MyFiles/Rust/opengl_raycaster/brick.png"), &display);
+    println!("pp");
+    let brick_tex = add_texture(Path::new("C:/Users/matou/MyFiles/Rust/opengl_raycaster/checkerboard.png"), &display);
 
     let stripes: [Angle; STRIPES_ON_SCREEN as usize] = create_stripes();
 
@@ -133,7 +128,8 @@ fn main() {
                         p_x: player.x,
                         p_y: player.y,
                         p_angle: player.angle,
-                        tex: &checkerboard_tex,
+                        tex2: &checkerboard_tex,
+                        tex1: &brick_tex,
                     };
 
                     use glium::draw_parameters::*;
@@ -225,4 +221,14 @@ impl Keys {
             player.angle -= TAU;
         }
     }
+}
+
+fn add_texture(path: &std::path::Path, display: &dyn glium::backend::Facade) -> glium::texture::SrgbTexture2d {
+    use std::io::BufReader;
+    let file = std::fs::File::open(path).unwrap();
+    let reader = BufReader::new(file);
+    let image = image::load(reader, image::ImageFormat::Png).unwrap().to_rgba8();
+    let image_dimensions = image.dimensions();
+    let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions); 
+    glium::texture::SrgbTexture2d::new(display, image).unwrap()
 }

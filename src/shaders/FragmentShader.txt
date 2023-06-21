@@ -3,9 +3,16 @@
 in vec2 fragmentTexPosition;
 
 out vec4 color;
+in flat int idx;
 
-uniform sampler2D tex;
+uniform sampler2D tex1;
+uniform sampler2D tex2;
+uniform float resolution;
 
 void main() {
-    color = texture(tex, fragmentTexPosition);
+    if (idx > 1) {
+        color = texture(tex2, (floor(fragmentTexPosition / (resolution / 2)))*(resolution / 2));
+    } else {
+        color = texture(tex1, (floor(fragmentTexPosition / (resolution / 2)))*(resolution / 2));
+    }
 }
