@@ -1,0 +1,138 @@
+#version 140 
+/* 
+The goal is to get in the angle, and return the weird ass position thing.
+x is x on the screen and y is the height, x is (-1, 1) and heigh is (0, inf) but can be negative, don't clip to (0, 1) it'll be used for textures later.
+*/
+
+const int MAPX = 8;
+const int MAPY = 8;
+const int MAP[64] = int[64](
+1, 1, 1, 1, 1, 1, 1, 1,
+1, 0, 0, 0, 0, 0, 0, 1,
+1, 0, 0, 1, 0, 0, 1, 1,
+1, 0, 0, 0, 0, 0, 0, 1,
+1, 0, 0, 0, 0, 0, 0, 1,
+1, 0, 0, 0, 0, 0, 0, 1,
+1, 0, 0, 0, 0, 0, 0, 1,
+1, 1, 1, 1, 1, 1, 1, 1
+);
+const float PI = 3.1415926535;
+const float PI2 = 1.570796326;
+const float PI3 = 4.712388980;
+const float TAU = 6.283185307;
+
+struct Player {
+float x, y, angle;
+};
+struct Final {
+float x, y, distance;
+};
+
+uniform float p_angle;
+uniform float p_x;
+uniform float p_y;
+Player player = Player(p_x, p_y, p_angle);
+
+in float d_angle;
+in float screen_x;
+
+out vec2 geometryTexPoisiton;
+
+void main() {
+    float ray_angle = player.angle + d_angle;
+    if      (ray_angle < 0.0)   ray_angle += TAU;
+    else if (ray_angle >= TAU)  ray_angle -= TAU;
+
+    if (ray_angle == 0.0 || ray_angle == PI) ray_angle += 0.0000001;
+
+    float d_ray_y;
+    float d_ray_x;
+    float ray_y;
+    float ray_x;
+    float dx;
+    float dy;
+
+    //-----------horizontal-----------
+    if (ray_angle > PI) {
+        float natan = -1.0 / tan(ray_angle);
+        ray_y = floor(player.y);
+        ray_x = player.x + (player.y - ray_y) * natan;
+        d_ray_y = -1.0;
+        d_ray_x = natan;
+    } else {
+        float atan = 1.0 / tan(ray_angle);
+        ray_y = floor(player.y + 1.0);
+        ray_x = player.x + (ray_y - player.y) * atan;
+        d_ray_y = 1.0;
+        d_ray_x = atan;
+    }
+
+    while (true) {
+        int map_x = int (ray_y + d_ray_y * 0.000001);
+        int map_y = int (ray_x + d_ray_x * 0.000001);
+
+        if (map_x > MAPX - 1 || map_x  < 0 || map_y > MAPY -1 || map_y < 0) {
+            break; // add color here
+        }
+        if (MAP[map_y * MAPY + map_x] != 0) {
+            break; // and here
+        } else {
+            ray_y += d_ray_y;
+            ray_x += d_ray_x;
+        }
+    }
+    dx = ray_x - player.x;
+    dy = ray_y - player.y;
+    Final horizontal = Final(ray_x, ray_y, sqrt(dx * dx + dy * dy));
+
+    //------------vertical------------
+    if (ray_angle > PI2 && ray_angle < PI3) { //left
+        float ntan = -tan(ray_angle);
+        ray_x = floor(player.x);
+        ray_y = player.y + (player.x - ray_x) * ntan;
+        d_ray_x = -1.0;
+        d_ray_y = ntan;
+    } else { // right
+        float tan = 1.0 * tan(ray_angle);
+        ray_x = floor(player.x + 1.0);
+        ray_y = player.y + (ray_x - player.x) * tan;
+        d_ray_x = 1.0;
+        d_ray_y = tan;
+    }
+
+    while (true) {
+        int map_x = int (ray_y + d_ray_y * 0.000001);
+        int map_y = int (ray_x + d_ray_x * 0.000001);
+
+        if (map_x > MAPX - 1 || map_x  < 0 || map_y > MAPY -1 || map_y < 0) {
+            break; // and here
+        }
+        if (MAP[map_y * MAPY + map_x] != 0) {
+            break; // and here
+        } else {
+            ray_y += d_ray_y;
+            ray_x += d_ray_x;
+        }
+    }
+    dx = ray_x - player.x;
+    dy = ray_y - player.y;
+    Final vertical = Final(ray_x, ray_y, sqrt(dx * dx + dy * dy));
+
+    float distance;
+    float shade; //use this!!!!!!!!!!!!!
+    float tex_x;
+    if (vertical.distance > horizontal.distance) {
+        distance = horizontal.distance * cos(d_angle);
+        tex_x = horizontal.x;
+        shade = 0.9;
+    } else {
+        distance = vertical.distance * cos(d_angle);
+        tex_x = vertical.y;
+        shade = 1.0;
+    }
+    float screen_height = 1.0 / distance;
+
+    geometryTexPoisiton = vec2(tex_x, 0.0);
+
+    gl_Position = vec4(screen_x, screen_height, 0.0, 1.0);
+}
